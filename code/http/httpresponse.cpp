@@ -1,7 +1,6 @@
 /*
- * @Author       : mark
- * @Date         : 2020-06-27
- * @copyleft Apache 2.0
+ * @Author       : zyh
+ * @Date         : 2022-09-10
  */ 
 #include "httpresponse.h"
 

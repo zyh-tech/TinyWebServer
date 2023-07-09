@@ -1,15 +1,17 @@
 /*
  * @Author       : zyh
  * @Date         : 2022-09-10
- * @copyleft Apache 2.0
  */ 
 #include "buffer.h"
 
 Buffer::Buffer(int initBuffSize) : buffer_(initBuffSize), readPos_(0), writePos_(0) {}
 
+//计算可读字节数
 size_t Buffer::ReadableBytes() const {
     return writePos_ - readPos_;
 }
+
+//计算可写字节数
 size_t Buffer::WritableBytes() const {
     return buffer_.size() - writePos_;
 }

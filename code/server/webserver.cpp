@@ -1,8 +1,7 @@
 /*
- * @Author       : mark
- * @Date         : 2020-06-17
- * @copyleft Apache 2.0
- */
+ * @Author       : zyh
+ * @Date         : 2022-09-10
+ */ 
 
 #include "webserver.h"
 
@@ -16,17 +15,22 @@ WebServer::WebServer(
             port_(port), openLinger_(OptLinger), timeoutMS_(timeoutMS), isClose_(false),
             timer_(new HeapTimer()), threadpool_(new ThreadPool(threadNum)), epoller_(new Epoller())
     {
-    srcDir_ = getcwd(nullptr, 256);
+    srcDir_ = getcwd(nullptr, 256);   //获取当前工作路径
     assert(srcDir_);
-    strncat(srcDir_, "/resources/", 16);
+
+    //将当前工作路径下的"/resources/"文件夹作为HTTP的资源文件路径
+    strncat(srcDir_, "/resources/", 16);    
     HttpConn::userCount = 0;
     HttpConn::srcDir = srcDir_;
+
+    //启动数据库连接池
     SqlConnPool::Instance()->Init("localhost", sqlPort, sqlUser, sqlPwd, dbName, connPoolNum);
 
     InitEventMode_(trigMode);
     if(!InitSocket_()) { isClose_ = true;}
 
     if(openLog) {
+        //开启日志并初始化，将配置信息填入
         Log::Instance()->init(logLevel, "./log", ".log", logQueSize);
         if(isClose_) { LOG_ERROR("========== Server init error!=========="); }
         else {
@@ -81,23 +85,27 @@ void WebServer::Start() {
         if(timeoutMS_ > 0) {
             timeMS = timer_->GetNextTick();
         }
+        //使用epoll一次监听多个事件
         int eventCnt = epoller_->Wait(timeMS);
         for(int i = 0; i < eventCnt; i++) {
-            /* 处理事件 */
+            /* 依次处理epoll监听到的事件 */
             int fd = epoller_->GetEventFd(i);
             uint32_t events = epoller_->GetEvents(i);
             if(fd == listenFd_) {
                 DealListen_();
             }
             else if(events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
+                //处理请求关闭连接事件
                 assert(users_.count(fd) > 0);
                 CloseConn_(&users_[fd]);
             }
             else if(events & EPOLLIN) {
+                //处理读事件
                 assert(users_.count(fd) > 0);
                 DealRead_(&users_[fd]);
             }
             else if(events & EPOLLOUT) {
+                //处理写事件
                 assert(users_.count(fd) > 0);
                 DealWrite_(&users_[fd]);
             } else {
@@ -119,6 +127,7 @@ void WebServer::SendError_(int fd, const char*info) {
 void WebServer::CloseConn_(HttpConn* client) {
     assert(client);
     LOG_INFO("Client[%d] quit!", client->GetFd());
+    //将连接关闭的客户端从epoll监听列表中删除
     epoller_->DelFd(client->GetFd());
     client->Close();
 }
@@ -129,6 +138,7 @@ void WebServer::AddClient_(int fd, sockaddr_in addr) {
     if(timeoutMS_ > 0) {
         timer_->add(fd, timeoutMS_, std::bind(&WebServer::CloseConn_, this, &users_[fd]));
     }
+    //将新连接的客户端加入到epoll监听列表
     epoller_->AddFd(fd, EPOLLIN | connEvent_);
     SetFdNonblock(fd);
     LOG_INFO("Client[%d] in!", users_[fd].GetFd());
@@ -149,6 +159,7 @@ void WebServer::DealListen_() {
     } while(listenEvent_ & EPOLLET);
 }
 
+//将读写事件都交给工作线程池处理
 void WebServer::DealRead_(HttpConn* client) {
     assert(client);
     ExtentTime_(client);

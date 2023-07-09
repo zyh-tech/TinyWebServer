@@ -1,7 +1,6 @@
 /*
- * @Author       : mark
- * @Date         : 2020-06-16
- * @copyleft Apache 2.0
+ * @Author       : zyh
+ * @Date         : 2022-09-10
  */ 
 #ifndef SQLCONNPOOL_H
 #define SQLCONNPOOL_H

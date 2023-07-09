@@ -3,7 +3,7 @@
 
 # 系统整体框图
 
-<img src="resources/images/框架.jpg" alt="整体框图" height="400">
+<img src="resources/images/框架.jpg" alt="整体框图" height="600">
 
 ## 功能
 * 利用IO复用技术Epoll与线程池实现多线程的Reactor高并发模型；
