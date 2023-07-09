@@ -10,6 +10,8 @@
 #include <condition_variable>
 #include <sys/time.h>
 
+
+//互斥锁+条件变量实现阻塞队列
 template<class T>
 class BlockDeque {
 public:

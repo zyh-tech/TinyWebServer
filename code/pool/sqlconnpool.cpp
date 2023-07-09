@@ -16,6 +16,7 @@ SqlConnPool* SqlConnPool::Instance() {
     return &connPool;
 }
 
+//在初始化时创建connSize个MySql连接
 void SqlConnPool::Init(const char* host, int port,
             const char* user,const char* pwd, const char* dbName,
             int connSize = 10) {
@@ -45,6 +46,7 @@ MYSQL* SqlConnPool::GetConn() {
         LOG_WARN("SqlConnPool busy!");
         return nullptr;
     }
+    //有连接需要，则从连接池中返回队头的连接
     sem_wait(&semId_);
     {
         lock_guard<mutex> locker(mtx_);
@@ -54,6 +56,7 @@ MYSQL* SqlConnPool::GetConn() {
     return sql;
 }
 
+//用完的数据库连接重新放回连接池的末尾
 void SqlConnPool::FreeConn(MYSQL* sql) {
     assert(sql);
     lock_guard<mutex> locker(mtx_);

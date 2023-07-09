@@ -40,6 +40,7 @@ void Log::SetLevel(int level) {
     level_ = level;
 }
 
+//初始化
 void Log::init(int level = 1, const char* path, const char* suffix,
     int maxQueueSize) {
     isOpen_ = true;
@@ -86,6 +87,7 @@ void Log::init(int level = 1, const char* path, const char* suffix,
     }
 }
 
+//写日志
 void Log::write(int level, const char *format, ...) {
     struct timeval now = {0, 0};
     gettimeofday(&now, nullptr);
@@ -146,6 +148,7 @@ void Log::write(int level, const char *format, ...) {
         buff_.RetrieveAll();
     }
 }
+
 
 void Log::AppendLogLevelTitle_(int level) {
     switch(level) {
